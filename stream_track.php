@@ -58,6 +58,7 @@ class TrackConsumer extends OauthPhirehose
 
   function checkFilterPredicates()
   {
+      global $log;
       $keywords = DataHelper::getKeywords(true);
       $keywords = array_keys($keywords);
 
