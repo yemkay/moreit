@@ -64,7 +64,8 @@ if ( !isset($DB) )
 
 
 global $log;
-$log = new KLogger(LOG_PATH, LOG_LEVEL); # Specify the log directory
+if ( !isset($log) )
+    $log = new KLogger(LOG_PATH, LOG_LEVEL); # Specify the log directory
 
 function setSetting($key, $value)
 {

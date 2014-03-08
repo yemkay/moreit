@@ -1,11 +1,11 @@
 <?php
 
-global $log;
 
 class DataHelper {
 
     static function getKeywords($active = true)  //assumes unique usernames across the system
     {
+        global $log;
         global $DB;
         $cond = array();
 
