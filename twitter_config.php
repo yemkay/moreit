@@ -13,6 +13,7 @@ set_include_path(get_include_path() . PATH_SEPARATOR . './lib/');
 include_once('config.php');
 require_once('DbSimple/Generic.php');	//DB http://en.dklab.ru/lib/DbSimple/
 require_once("Arc90/Service/Twitter.php");
+require_once('KLogger.php');
 
 @header( 'Content-Type: text/html; charset=UTF-8' );
 @mb_internal_encoding( 'UTF-8' );
@@ -36,6 +37,7 @@ define('DB_USER',	USER);
 define('DB_PSWD',	PASSWORD);
 
 define('LOG_PATH', './log');
+define('LOG_LEVEL', KLogger::DEBUG);
 
 function db_connect()
 {
@@ -60,9 +62,9 @@ if ( !isset($DB) )
     db_connect();
 }
 
-require_once('KLogger.php');
+
 global $log;
-$log = new KLogger(LOG_PATH); # Specify the log directory
+$log = new KLogger(LOG_PATH, LOG_LEVEL); # Specify the log directory
 
 function setSetting($key, $value)
 {
