@@ -69,6 +69,7 @@ if ( !isset($log) )
 
 function setSetting($key, $value)
 {
+    global $log;
     $log->logDebug("Setting $key = ".substr($value, 0, 500));
     global $DB;
     $rows = $DB->query('INSERT IGNORE INTO Settings(`key`, `value`) VALUES(?, ?, ?)

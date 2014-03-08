@@ -1,7 +1,5 @@
 <?php
 
-global $log;
-
 function is_running($script, $max = 1)
 {
     $pids = array();
@@ -25,6 +23,7 @@ function error_handler($code, $message, $file, $line)
     if (!in_array($code, array(E_ERROR, E_WARNING , E_PARSE)))
         return;
 
+    global $log;
     $log->logCrit('********* Error: '.$code.' **********');
     $log->logCrit('File: '.$file.' , Line: '.$line);
     $log->logCrit('Message: '.$message);
@@ -78,6 +77,7 @@ set_exception_handler("exception_handler");
 
 function sendToPipe($pipe_id, $data)
 {
+    global $log;
     $err = '';
     // Create System V Message Queue. Integer value is the number of the Queue
     $queue = msg_get_queue($pipe_id, 0777);
@@ -101,6 +101,7 @@ function sendToPipe($pipe_id, $data)
 
 function getPageContents($url, $method = 'GET', $post_data = array(), $timeout = 60)
 {
+    global $log;
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -137,6 +138,7 @@ function getPageContents($url, $method = 'GET', $post_data = array(), $timeout =
 
 function databaseErrorHandler($message, $info)
 {
+    global $log;
     if (!error_reporting()) return;
     $message = "SQL Error: $message<br><pre>"; print_r($info, true); echo "</pre>";
     $log->logCrit($message);

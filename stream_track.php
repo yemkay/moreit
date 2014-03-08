@@ -52,6 +52,7 @@ class TrackConsumer extends OauthPhirehose
 
   protected function log($message)
   {
+      global $log;
       $log->logDebug('Phirehose: ' . $message);
   }
 
