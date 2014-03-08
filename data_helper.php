@@ -12,7 +12,7 @@ class DataHelper {
         if ($active) $cond[] = 'is_active=1';
 
         $cond = implode(' AND ', $cond);
-        if (!empty($cond)) $cond = ' AND '.$cond;
+        if (!empty($cond)) $cond = ' WHERE '.$cond;
 
         $query = 'select tw_keywords.*, keyword as ARRAY_KEY from tw_keywords'.$cond;
 
