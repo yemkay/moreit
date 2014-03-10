@@ -59,39 +59,7 @@ class Twitter_Message {
         $this->keyword = $this->text();
         trace('Keyword initialized to: '.$this->keyword());
 
-        //remove text before prefix
-        if ($this->query_type==QUERY_PREFIX &&
-                $this->getPartnerSetting('ignore_before_prefix')=='1')
-        {
-            $this->keyword = trim(mb_substr($this->keyword, mb_stripos($this->keyword, $this->matched_query_tag)));
-            trace('Keyword after removing text before prefix: '.$this->keyword());
-        }
-
-        //should be done before findLocation
-        $this->keyword = $this->strip_off_recipient_hashtag_infos($this->keyword);
-
-        $this->findLocation(); // should be called after hashtags() and getPartnerId()
-        $this->findChannels(); // should be called after hashtags()
-
         trace('Sender: '.$this->sender().', recipient: '.$this->recipient());
-    }
-
-    function strip_off_recipient_hashtag_infos($keyword)
-    {
-        //if a hashtag/prefix tweet, remove the hashtag/prefix from tweet text
-        //should be done before findLocation(), to avoid messing up location section
-        if (!empty($this->matched_query_tag))
-        {
-            $this->replaceRegex('/'.$this->matched_query_tag.'\b/i');
-            trace('Keyword after removing query tag: '.$keyword);
-        }
-
-        //do this after cleaning query tags as it may contain @username
-        $keyword = trim(str_replace("\n"," ", str_ireplace('@'.$this->recipient(), '', $keyword)));
-
-        trace('Keyword after removing recipient @'.$this->recipient().': '.$keyword);
-
-        return $keyword;
     }
 
     function sender()
@@ -349,18 +317,23 @@ class Twitter_Message {
     }
 
 
-    //returns true of any of the keywords is present in the tweet
+    //returns array of keywords present in the tweet
     function contains($keywords)
     {
+        $matches = array();
         foreach ($keywords as $keyword)
         {
             if (preg_match_all('/\\b'.trim($keyword).'\\b/i', ' '.$this->tweet->text.' ', $matches)>0)
             {
                 trace('Matched '.$keyword);
-                return $keyword;
+                $matches[] = $keyword;
             }
         }
-        return false;
+        
+        global $log;
+        $log->logDebug("Matches found: ".count($matches)." => ".implode(', ', $matches));
+        
+        return empty($matches)? false:$matches;
     }
 
     function is_test()
