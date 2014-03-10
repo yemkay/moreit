@@ -1,18 +1,11 @@
 <?php
 
-require_once('partner_helper.php');
-require_once('geo_helper.php');
-require_once('partner_settings.php');
-
-
 /* Represents a Tweet or a Direct Message */
 class Twitter_Message {
 
     var $location = '';
-    var $postalcode = '';
     var $hashtags = array();
-    var $channel = 0;
-
+    
     var $tweet;
 
     var $is_dm = false;
@@ -23,9 +16,6 @@ class Twitter_Message {
     var $location_bounds = '';
     var $matched_query_tag = '';
     var $query_type = '';
-    var $partner_settings = null;
-
-    var $services = null;
 
     function Twitter_Message($data)
     {
