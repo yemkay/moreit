@@ -19,7 +19,8 @@ class Twitter_Message {
 
     function Twitter_Message($data)
     {
-        trace('Twitter_message instantiated with '.print_r($data, true));
+        global $log;
+        $log->logInfo('Twitter_message instantiated with '.print_r($data, true));
         //replace t.co URLs with longer versions
         if (!empty($data->entities->urls))
         {
@@ -29,7 +30,7 @@ class Twitter_Message {
                     $data->text = str_ireplace($url->url, $url->display_url, $data->text);
             }
 
-            trace('After substituting oringal URLs: '.$data->text);
+            $log->logInfo('After substituting oringal URLs: '.$data->text);
         }
 
         $this->tweet = $data;
@@ -37,19 +38,19 @@ class Twitter_Message {
 
         if (isset($data->text))
         {
-            trace('Received a tweet');
-            trace($data->user->screen_name.': '.$data->text);
+            $log->logInfo('Received a tweet');
+            $log->logInfo($data->user->screen_name.': '.$data->text);
         }
         else
         {
-            trace('Received: '.print_r($data, true));
+            $log->logInfo('Received: '.print_r($data, true));
         }
 
         //initialize keyword to full text
         $this->keyword = $this->text();
-        trace('Keyword initialized to: '.$this->keyword());
+        $log->logInfo('Keyword initialized to: '.$this->keyword());
 
-        trace('Sender: '.$this->sender().', recipient: '.$this->recipient());
+        $log->logInfo('Sender: '.$this->sender().', recipient: '.$this->recipient());
     }
 
     function sender()
@@ -84,6 +85,7 @@ class Twitter_Message {
 
     function recipient()
     {
+        global $log;
         if ($this->is_dm)
             return $this->tweet->recipient->screen_name;
 
@@ -98,7 +100,7 @@ class Twitter_Message {
             return $this->ghost_recipients['userName'];
         }
 
-        trace('SHOULDNOT HIT THIS PLACE');
+        $log->logInfo('SHOULDNOT HIT THIS PLACE');
         return TWITTER_USER;
     }
 
@@ -157,19 +159,21 @@ class Twitter_Message {
 
     function extractTags()
     {
+        global $log;
         $this->hashtags = array();
 
         if (preg_match_all('/(#\w+)/', mb_strtolower($this->tweet->text), $matches) > 0 && !empty($matches[0]))
             $this->hashtags = $matches[0];
 
-        trace('Tags found: '.implode(', ', $this->hashtags));
+        $log->logInfo('Tags found: '.implode(', ', $this->hashtags));
     }
 
 
     //substitutes a regex match in tweet text with empty string
     function replaceRegex($regex)
     {
-        trace('Regex on keyword text: '.$regex);
+        global $log;
+        $log->logInfo('Regex on keyword text: '.$regex);
         $this->keyword = preg_replace($regex, '', ' '.$this->keyword.' ');
 	$this->keyword = trim($this->keyword);
     }
@@ -237,6 +241,7 @@ class Twitter_Message {
     function save($is_error, $is_complete)
     {
         global $DB;
+        global $log;
 
         $u = array(
             'twitter_id' => $this->sender_id(),
@@ -273,7 +278,7 @@ class Twitter_Message {
         $id = $DB->query('INSERT IGNORE INTO shopper_queries(?#) VALUES (?a)
                           ON DUPLICATE KEY UPDATE is_error=VALUES(is_error),
                           is_complete=VALUES(is_complete)', array_keys($a), array_values($a));
-        trace('Query logged as '.$id);
+        $log->logInfo('Query logged as '.$id);
 
         return $id;
     }
@@ -310,12 +315,13 @@ class Twitter_Message {
     //returns array of keywords present in the tweet
     function contains($keywords)
     {
+        global $log;
         $matches = array();
         foreach ($keywords as $keyword)
         {
             if (preg_match_all('/\\b'.trim($keyword).'\\b/i', ' '.$this->tweet->text.' ', $matches)>0)
             {
-                trace('Matched '.$keyword);
+                $log->logInfo('Matched '.$keyword);
                 $matches[] = $keyword;
             }
         }
@@ -341,10 +347,11 @@ class Twitter_Message {
     //replaces the pattern and returns the result
     function extractInput($pattern)
     {
+        global $log;
         if (preg_match_all($pattern, ' '.$this->text().' ', $matches) > 0)
         {
             $this->replaceRegex($pattern);
-            trace('Found input: '.$matches[1][0]);
+            $log->logInfo('Found input: '.$matches[1][0]);
             return $matches[1][0];
         }
         return false;
