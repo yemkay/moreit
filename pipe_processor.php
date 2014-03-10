@@ -1,7 +1,7 @@
 <?php
 
-require_once('error_handler.php');
 require_once('twitter_config.php');
+require_once('error_handler.php');
 
 abstract class pipe_processor
 {
