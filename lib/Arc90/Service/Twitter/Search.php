@@ -280,9 +280,10 @@ class Arc90_Service_Twitter_Search
             }
         }
         
-        trace('Query : '.$query['q']);
+        global $log;
+        $log->logInfo('Query : '.$query['q']);
         $uri = sprintf('%s.%s', self::PATH_SEARCH, $this->_format);
-        trace('Search API call: '.$uri);
+        $log->logInfo('Search API call: '.$uri);
         return $this->_sendRequest($uri, $query);
     }
 

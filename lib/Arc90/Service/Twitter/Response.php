@@ -158,7 +158,8 @@ class Arc90_Service_Twitter_Response {
         if (!isset($this->getJsonData()->errors))
             return '';
         $errors = $this->getJsonData()->errors;
-        trace('Twitter response: ' . print_r($this->getJsonData(), true));
+        global $log;
+        $log->logDebug('Twitter response: ' . print_r($this->getJsonData(), true));
         $error = array();
         if (is_array($errors))
             foreach ($errors as $e)

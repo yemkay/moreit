@@ -11,6 +11,7 @@ abstract class pipe_processor
 
     function pipe_processor()
     {
+        global $log;
         $this->start_time = microtime(true);
         
         $this->change_dir();
@@ -22,7 +23,7 @@ abstract class pipe_processor
         //impose a comfortable time limit
         set_time_limit(0);
         $this->init_memory = memory_get_usage();
-        trace("Current memory usage: ".memory_get_usage());
+        $log->logInfo("Current memory usage: ".memory_get_usage());
     }
 
     function change_dir()
@@ -42,8 +43,9 @@ abstract class pipe_processor
 
     function can_start()
     {
+        global $log;
         $this->file_name = get_class($this);
-        trace('Script: '.$this->file_name);
+        $log->logInfo('Script: '.$this->file_name);
         if ($this->is_running($this->file_name, 1)) 
         {
             //echo 'Another process is already running';
@@ -53,6 +55,7 @@ abstract class pipe_processor
 
     function run($pipe_id)
     {
+        global $log;
         $this->can_start();
 
         $queue = msg_get_queue($pipe_id);
@@ -69,34 +72,34 @@ abstract class pipe_processor
         {
             try
             {
-                trace('Listening to queue #'.$pipe_id);
+                $log->logInfo('Listening to queue #'.$pipe_id);
                 if (msg_receive($queue, $msgtype_receive, $msgtype_erhalten, $maxsize, $data, TRUE, $option_receive, $err)===true)
                 {
-                    trace('Received a message...');
+                    $log->logInfo('Received a message...');
                     $this->process($data);
                 }
                 else
                 {
                     $this->post_message();
                     $message = ('Failed to receive message from queue: '.print_r($err, true));
-                    trace($message);
+                    $log->logInfo($message);
                     EmailFailReport($this->file_name, $message);
                     continue;
                 }
                 $queue_status = msg_stat_queue($queue);
-                trace('Queue length: '.$queue_status['msg_qnum']);
+                $log->logInfo('Queue length: '.$queue_status['msg_qnum']);
             }
             catch(Exception $exp)
             {
                 $message = FormatExceptionMessage($exp);
-                trace($message);
+                $log->logInfo($message);
             }
         }
 
         EmailFailReport($this->file_name.' is terminating');
-        trace($this->file_name.' is terminating...');
-        trace("Memory consumed: ".memory_get_usage()-$this->init_memory);
-        trace("Time taken: " .(microtime(true)-$this->start_time));
+        $log->logInfo($this->file_name.' is terminating...');
+        $log->logInfo("Memory consumed: ".memory_get_usage()-$this->init_memory);
+        $log->logInfo("Time taken: " .(microtime(true)-$this->start_time));
     }
 
     function can_continue()
