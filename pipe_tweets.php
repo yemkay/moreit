@@ -37,7 +37,8 @@ class pipe_tweets extends pipe_processor
         }
         catch (Exception $exp)
         {
-            exception_handler($e);
+            exception_handler($exp);
+            $log->logCrit("Exception in pipe_tweets", $exp);
         }
 
         $log->logInfo('done processing!!');
