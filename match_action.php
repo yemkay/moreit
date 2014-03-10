@@ -16,6 +16,7 @@ class match_action extends tweet_action
         $log->logInfo('Starting Match Action!!!!');
         
         $keywords = DataHelper::getKeywords(true);
+        $keywords = array_keys($keywords);
         
         $this->matches = $this->m_tweet->contains($keywords);
 
