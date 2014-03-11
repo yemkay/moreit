@@ -238,51 +238,77 @@ class Twitter_Message {
         return $this->tweet->created_at;
     }
 
-    function save($is_error, $is_complete)
+    function save()
     {
         global $DB;
         global $log;
+        
+        $tweet = $this->tweet;
 
-        $u = array(
-            'twitter_id' => $this->sender_id(),
-            'name'       => $this->sender_name(),
-            'screen_name' => $this->sender(),
-            'last_active' => from_RESTdate($this->tweet->created_at, true),
-            'location' => $this->location_text(),
-            'json' => json_encode($this->tweet),
-            'is_shopper' => 1,
-            'bio' => $this->sender_bio(),
-            'web' => $this->sender_web(),
-            'partner_id' => $this->getPartnerId()
+        $tweet_record = array(
+            'id'		=>  $tweet->id,
+            'twitter_id'	=>  $tweet->user->id,
+            'screen_name'	=>  $tweet->user->screen_name,
+            'created_at'	=>  from_RESTdate($tweet->created_at),
+            'in_reply_to_user_id'	    =>  @$tweet->in_reply_to_user_id,
+            'in_reply_to_status_id'	    =>  @$tweet->in_reply_to_status_id,
+            'in_reply_to_screen_name'   =>  @$tweet->in_reply_to_screen_name,
+            'source'		    =>  @html_entity_decode($tweet->source),
+            'lat'			    =>  @$tweet->geo->coordinates[0],
+            'lng'			    =>  @$tweet->geo->coordinates[1],
+            'location'		    =>  @$tweet->user->location,
+            'unix_created_at'	    =>  from_RESTdate($tweet->created_at, true),
+            'profile_image_url'	    =>	@$tweet->user->profile_image_url,
+            'message'		    =>	html_entity_decode($tweet->text),
+            'lang'			    =>  @$tweet->lang
         );
 
-        $a = array(
-            'twitter_id' => $this->sender_id(),
-            'created_at_epoch' => from_RESTdate($this->tweet->created_at, true),
-            'query' => $this->keyword(),
-            'tweet_id' => $this->id(),
-            'location' => $this->location_text(),
-            'json' => json_encode($this->tweet),
-            'is_error' => $is_error? 1:0,
-            'is_complete' => $is_complete? 1:0,
-            'partner_id' => $this->getPartnerId()
-        );
+   
+	$user_record = array(
+	    'twitter_id'	=>  $tweet->user->id,
+	    'screen_name'	=>  $tweet->user->screen_name,
+	    'name'		=>  @$tweet->user->name,
+	    'statuses_count'=>  $tweet->user->statuses_count,
+	    'location'	=>  @$tweet->user->location,
+	    'profile_background_image_url'	=>  @$tweet->user->profile_background_image_url,
+	    'description'	=>  @$tweet->user->description,
+	    'url'		=>  @$tweet->user->url,
+	    'followers_count'   =>  @$tweet->user->followers_count,
+	    'friends_count'	    =>  @$tweet->user->friends_count,
+	    'favourites_count'   =>  @$tweet->user->favourites_count,
+	    'profile_image_url' =>  @$tweet->user->profile_image_url,
+	    'time_zone'	    =>  @$tweet->user->time_zone,
+	    'utc_offset'	    =>  @$tweet->user->utc_offset,
+	    'created_at'	=>  from_RESTdate($tweet->created_at),
+            'verified'          => @$tweet->user->verified
+	);
 
-        $id = $DB->query('INSERT IGNORE INTO shoppers(?#) VALUES (?a)
-                            ON DUPLICATE KEY UPDATE last_active=VALUES(last_active), location = VALUES(location),
-                            json = VALUES(json), is_shopper = VALUES(is_shopper), 
-                            bio = VALUES(bio), web = VALUES(web), screen_name = VALUES(screen_name),
-                            partner_id=VALUES(partner_id)',
-                array_keys($u), array_values($u));
+	$DB->query('INSERT IGNORE INTO twitter_users(?#) VALUES (?a)
+		ON DUPLICATE KEY UPDATE
+		    screen_name = VALUES(screen_name),
+		    name = VALUES(name),
+		    statuses_count = VALUES(statuses_count),
+		    location = VALUES(location),
+		    profile_background_image_url = VALUES(profile_background_image_url),
+		    description = VALUES(description),
+		    url = VALUES(url),
+		    followers_count = VALUES(followers_count),
+		    friends_count = VALUES(friends_count),
+		    profile_image_url = VALUES(profile_image_url),
+		    time_zone = VALUES(time_zone),
+		    utc_offset = VALUES(utc_offset),
+		    verified = VALUES(verified)
+		',
+		array_keys($user_record),array_values($user_record));
+   
+        $DB->query('INSERT IGNORE INTO tweets(?#) VALUES (?a)',array_keys($tweet_record),array_values($tweet_record));
 
-        $id = $DB->query('INSERT IGNORE INTO shopper_queries(?#) VALUES (?a)
-                          ON DUPLICATE KEY UPDATE is_error=VALUES(is_error),
-                          is_complete=VALUES(is_complete)', array_keys($a), array_values($a));
-        $log->logInfo('Query logged as '.$id);
+        $log->logInfo("Saved tweet: ".$tweet->id);
+        
+        return $tweet->id;
 
-        return $id;
     }
-
+    
     function updateSinceId()
     {
         $key = $this->is_dm? 'since_id_dm':'since_id_mention';

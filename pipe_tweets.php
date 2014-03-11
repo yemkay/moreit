@@ -25,6 +25,8 @@ class pipe_tweets extends pipe_processor
             if ($match->process())
             {
                 $log->logInfo('Matched a tweet');
+                
+                $tweet_id = $tweet->save();
             }
             else
             {
